@@ -2,7 +2,7 @@ JOB (1)
 
 pipeline {
   environment {
-    registry = "gadidor/mydocker"
+    registry = "gadido30/mydocker"
     registryCredential = 'dockerhub'
     dockerImage = ''
   }
@@ -10,7 +10,7 @@ pipeline {
   stages {
     stage('Pull Code from GitHub') {
       steps {
-        git 'https://github.com/gadido30/jenkins1'
+        git 'https://github.com/gadido30/jenkins1/job1'
       }
     }
     stage('Build Docker Continer') {

@@ -1,0 +1,27 @@
+JOB (3)
+
+node {
+    checkout scm
+    docker.image('nginx').withRun('') { c ->
+        docker.image('nginx').inside("--link ${c.id}:nginx") {
+          
+        }
+        docker.image('centos:7').inside("--link ${c.id}:nginx") {
+            
+            sh '''
+			   #!/bin/bash
+
+               status_code=$(curl --write-out %{http_code} --silent --output /dev/null http://127.0.0.1)
+
+               if [[ "$status_code" -eq 200 ]] ; then
+			      echo "nginx status code ok" 
+                  echo "nginx status code ok" >> check_nginx_service.log				  
+               else
+			      echo "nginx status code error: $status_code" 
+				  echo "nginx status code error: $status_code" >> check_nginx_service.log	
+                  exit 0
+               fi	              	 
+			   '''			
+        }
+    }
+}
