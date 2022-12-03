@@ -6,5 +6,8 @@ containers = cli.containers.list(all=True)
 app = Flask(__name__)
 #Return continers list
 @app.route('/')
-def list():
+def list:
     return "Continers List:" + containers
+
+if __name == '__main__':
+    app.run(debug=True, host='0.0.0.0')
