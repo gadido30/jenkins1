@@ -1,0 +1,33 @@
+JOB (3)
+
+pipeline {
+    agent {
+        docker { 
+		       image 'nginx:alpine',
+               args '-p 8089:80'
+			   }
+        }
+    stages {
+        stage('check nginx status code') {
+            agent {
+                docker {'centos:7' }
+            }
+            steps {
+               sh '''
+			   #!/bin/bash
+
+               status_code=$(curl --write-out %{http_code} --silent --output /dev/null http://127.0.0.1:8089)
+
+               if [[ "$status_code" -eq 200 ]] ; then
+			      echo "nginx status code ok" 
+                  echo "nginx status code ok" >> check_nginx_service.log				  
+               else
+			      echo "nginx status code error: $status_code" 
+				  echo "nginx status code error: $status_code" >> check_nginx_service.log	
+                  exit 0
+               fi	               		  
+			   '''			   
+            }
+        }
+    }
+}
