@@ -1,0 +1,58 @@
+JOB (2)
+
+pipeline {
+  environment {
+    registry = "gadido30/mydockernginx"
+    registryCredential = 'dockerhub'
+    dockerImage = ''
+  }
+  agent any
+  stages {
+    stage('Pull Code from GitHub') {
+      steps {
+        git 'https://github.com/gadido30/jenkins1/job2'
+      }
+    }
+    stage('Build Docker Continer') {
+      steps{
+        script {
+		sh '''
+		   default.conf << EOF
+		   server {
+               listen       80;
+               server_name  localhost;
+		       location / {
+                   proxy_pass   http://localhost:8000;
+                   proxy_set_header   Host $host;
+                   proxy_set_header   X-Real-IP $remote_addr;
+                   proxy_pass_request_headers      on;
+               }
+		   }
+		   EOF
+		   Dockerfile << EOF
+		   FROM nginx:alpine
+		   COPY default.conf /etc/nginx/conf.d/
+		   EOF
+		   
+		   
+		   '''
+          dockerImage = docker.build(registry + ":$BUILD_NUMBER", "-f Dockerfile .") 
+        }
+      }
+    }
+    stage('Push to DockerHub') {
+      steps{
+        script {
+          docker.withRegistry( '', registryCredential ) {
+            dockerImage.push()
+          }
+        }
+      }
+    }
+    stage('Remove Unused docker image') {
+      steps{
+        sh "docker rmi $registry:$BUILD_NUMBER"
+      }
+    }
+  }
+}

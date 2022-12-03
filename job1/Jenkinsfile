@@ -1,66 +1,22 @@
-JOB (1)
-
-pipeline {
-  environment {
-    registry = "gadido30/mydocker"
-    registryCredential = 'dockerhub'
-    dockerImage = ''
-  }
-  agent any
-  stages {
-    stage('Pull Code from GitHub') {
-      steps {
-        git 'https://github.com/gadido30/jenkins1/job1'
-      }
-    }
-    stage('Build Docker Continer') {
-      steps{
-        script {
-		sh '''
-		   myapps.py << EOF
-		   from flask import Flask
-           import docker
-
-           #Connect to Docker Engine
-           cli = docker.DockerClient(base_url='tcp://127.0.0.1:2375')
-           containers = cli.containers.list(all=True)
-
-           app = Flask(__name__)
-
-           #Return continers list
-           @app.route('/')
-           def list():
-               return "Continers List:" + containers
-		   EOF
-		   
-		   Dockerfile << EOF
-		   FROM python:3
-		   WORKDIR /usr/src/app
-           RUN pip install flask
-		   COPY myapps.py .
-		   EXPOSE 5000/tcp
-           CMD [ "python", "./myapps.py" ] 
-		   EOF
-		   
-		   
-		   '''
-          dockerImage = docker.build(registry + ":$BUILD_NUMBER", "-f Dockerfile .") 
+job('DockerBuildandPublishDSL') {
+    description('python list docker continers')
+     scm {
+        git {
+        remote {
+                url('https://github.com/gadido30/jenkins1/job1.git')
+                //credentials('my-gihub-cred')
+            }
+            wrappers {
+                preBuildCleanup()
+            } 
+            branch('*/' + 'main')
         }
-      }
     }
-    stage('Push to DockerHub') {
-      steps{
-        script {
-          docker.withRegistry( '', registryCredential ) {
-            dockerImage.push()
-          }
+
+    steps {
+        dockerBuildAndPublish {
+            repositoryName('gadido30/job1')
+            registryCredentials('e6a34d22-3562-4e22-a525-012c681fece1')
         }
-      }
     }
-    stage('Remove Unused docker image') {
-      steps{
-        sh "docker rmi $registry:$BUILD_NUMBER"
-      }
-    }
-  }
 }
