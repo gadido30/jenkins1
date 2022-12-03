@@ -29,9 +29,11 @@ pipeline {
 
            #Return continers list
            @app.route('/')
-           def list():
+           def list:
                return "Continers List:" + containers
-		   EOF
+	   if __name == '__main__':
+               app.run(debug=True, host='0.0.0.0')
+           EOF
 		   
 		   Dockerfile << EOF
 		   FROM python:3
